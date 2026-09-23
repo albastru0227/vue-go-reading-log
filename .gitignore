@@ -14,7 +14,8 @@ bootstrap.zip
 *.exe
 
 #作業用の一時ファイル
-main copy.go.txt
+main copy.go.
+読書記録カードイメージ.png
 
 # == vue ===
 #依存パッケージ
