@@ -1,0 +1,31 @@
+#=== Terraform ===
+# stateファイル（インフラ内部の機密情報が含まれるファイル）
+*.tfstate
+*.tfstate.*
+
+#プロバイダのバイナリ
+.terraform/
+.terraform.lock.hcl
+
+# === go ===
+#ビルド生成物
+bootstrap
+bootstrap.zip
+*.exe
+
+#作業用の一時ファイル
+main copy.go.txt
+
+# == vue ===
+#依存パッケージ
+node_modules/
+#ビルド成果物
+dist/
+#環境変数ファイル
+.env
+.env.*
+
+# ===その他 ===
+# OSが生成するファイル
+.DS_Store
+Thumbs.db
