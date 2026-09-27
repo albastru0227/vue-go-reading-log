@@ -6,6 +6,17 @@ resource "aws_cloudfront_origin_access_control" "booklog" {
   signing_protocol                  = "sigv4"
 }
 
+//CloudFrontのAPI Gateway向けキャッシュポリシー
+data "aws_cloudfront_cache_policy" "cache_policy_apigateway" {
+  name = "Managed-CachingDisabled" //AWSマネージドのキャッシュを無効化するポリシー
+}
+
+//CloudFrontのAPI Gateway向けオリジンリクエストポリシー
+data "aws_cloudfront_origin_request_policy" "origin_request_policy_apigateway" {
+  name = "Managed-AllViewerExceptHostHeader" //Host以外（クエリ文字列など）を付加する
+}
+
+
 //CloudFrontディストリビューション
 resource "aws_cloudfront_distribution" "booklog" {
   //静的コンテンツが置かれているS3バケットへの紐づけ
@@ -49,6 +60,17 @@ resource "aws_cloudfront_distribution" "booklog" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
+  }
+
+  //API Gatewayへのリクエスト送信の振る舞いを設定
+  ordered_cache_behavior {
+    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "DELETE"]                  //API GatewayにGET, POST, PUT, DELETEを送るため、CloudFrontの仕様上7つすべてを指定する必要がある
+    cached_methods           = ["GET", "HEAD"]                                                               //キャッシュは使わないため最低限
+    cache_policy_id          = data.aws_cloudfront_cache_policy.cache_policy_apigateway.id                   //レスポンスをキャッシュに入れない
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.origin_request_policy_apigateway.id //クエリ文字を含めた情報を送信するために設定
+    path_pattern             = "/api/*"                                                                      //URLに/apiから始まるものを対象とする
+    target_origin_id         = "apigateway-booklog"                                                          //originに指定したAPI Gatewayをターゲットとする
+    viewer_protocol_policy   = "https-only"                                                                  //JavaScriptからのリクエストで基本はhttpsのためhttpsのみを受け付けるようにする
   }
 
   //北米・欧州のみを使用し、最安のものを使用する
