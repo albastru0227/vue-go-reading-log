@@ -27,23 +27,23 @@ resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_logs" {
 //DynamoDBへの読み書き更新削除クエリのアクションを許可する
 data "aws_iam_policy_document" "lambda_use_dynamodb_policy" {
   statement {
-    actions = [ 
-        "dynamodb:Scan",
-        "dynamodb:Query",
-        "dynamodb:GetItem",
-        "dynamodb:PutItem",
-        "dynamodb:DeleteItem"
+    actions = [
+      "dynamodb:Scan",
+      "dynamodb:Query",
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem"
     ]
 
-    resources = [ 
-        aws_dynamodb_table.vue_go_reading_log.arn,
-        "${aws_dynamodb_table.vue_go_reading_log.arn}/index/*"
+    resources = [
+      aws_dynamodb_table.vue_go_reading_log.arn,
+      "${aws_dynamodb_table.vue_go_reading_log.arn}/index/*"
     ]
   }
 }
 
 resource "aws_iam_role_policy" "role_policy_for_dynamodb_lambda" {
-  name = "dynamodb-access"
-  role = aws_iam_role.role_for_booklog.id
+  name   = "dynamodb-access"
+  role   = aws_iam_role.role_for_booklog.id
   policy = data.aws_iam_policy_document.lambda_use_dynamodb_policy.json
 }

@@ -8,13 +8,28 @@ resource "aws_cloudfront_origin_access_control" "booklog" {
 
 //CloudFrontディストリビューション
 resource "aws_cloudfront_distribution" "booklog" {
+  //静的コンテンツが置かれているS3バケットへの紐づけ
   origin {
     domain_name              = aws_s3_bucket.booklog.bucket_regional_domain_name
     origin_access_control_id = aws_cloudfront_origin_access_control.booklog.id
     origin_id                = "s3-booklog"
   }
 
-  enabled             = true //ディストリビューションを有効化する
+  //リクエスト処理を行うAPI Gatewayへの紐づけ
+  origin {
+    domain_name = trimprefix(aws_apigatewayv2_api.bookLog_api.api_endpoint, "https://")
+    origin_id   = "apigateway-booklog"
+
+    //API Gatewayへのアクセスの設定
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_ssl_protocols   = ["TLSv1.2"]
+      origin_protocol_policy = "https-only"
+    }
+  }
+
+  enabled             = true         //ディストリビューションを有効化する
   default_root_object = "index.html" //デフォルトでみるS3内のファイル
 
   default_cache_behavior {
@@ -35,7 +50,7 @@ resource "aws_cloudfront_distribution" "booklog" {
     default_ttl            = 3600
     max_ttl                = 86400
   }
- 
+
   //北米・欧州のみを使用し、最安のものを使用する
   price_class = "PriceClass_100"
 
@@ -58,14 +73,14 @@ resource "aws_cloudfront_distribution" "booklog" {
 
   //パスへの直接アクセスの際、index.htmlにリダイレクトする
   custom_error_response {
-    error_code = 404
-    response_code = 200
+    error_code         = 404
+    response_code      = 200
     response_page_path = "/index.html"
   }
 
   custom_error_response {
-    error_code = 403
-    response_code = 200
+    error_code         = 403
+    response_code      = 200
     response_page_path = "/index.html"
   }
 }

@@ -1,21 +1,18 @@
-//goファイルを圧縮する
-data "archive_file" "zip_bootstrap" {
-  type        = "zip"
-  source_file = "${path.module}/../bootstrap"
-  output_path = "${path.module}/../bootstrap.zip"
-}
-
 //Lambda関数
 resource "aws_lambda_function" "bookLog_function" {
-  filename      = data.archive_file.zip_bootstrap.output_path //zip化したgoのバイナリファイル
+  filename      = "${path.module}/../placeholder.zip" // 関数作成時の仮コード。実際のコードはGitHub Actionsがデプロイする
   function_name = "bookLog_function"
   role          = aws_iam_role.role_for_booklog.arn
   handler       = "bootstrap"
-  source_code_hash   = data.archive_file.zip_bootstrap.output_base64sha256
 
   runtime = "provided.al2023" //goはコンパイル言語であるため、runtimeにはamazon linux2023を選択
 
-  architectures = [ "x86_64" ] //x86_64とarn64の両方に対応させる
+  architectures = ["x86_64"] //GOARCH=amd64でビルドしたバイナリに合わせてx86_64を指定
+
+  // コードはCIが管理するため、filenameの差分はTerraformの管理対象外とする
+  lifecycle {
+    ignore_changes = [filename]
+  }
 }
 
 //API Gatewayからのアクセスを許可

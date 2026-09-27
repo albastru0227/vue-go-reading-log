@@ -1,7 +1,7 @@
 resource "aws_dynamodb_table" "vue_go_reading_log" {
-  name           = "vue-go-reading-log"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "Id"
+  name         = "vue-go-reading-log"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "Id"
 
   attribute {
     name = "Id"
@@ -15,12 +15,12 @@ resource "aws_dynamodb_table" "vue_go_reading_log" {
 
   //ステータスで検索をかけるためにGSIを設定する
   global_secondary_index {
-    name = "status-index"
-    hash_key = "Status"
+    name            = "status-index"
+    hash_key        = "Status"
     projection_type = "ALL"
   }
 
   tags = {
-    Name        = "vue-go-reading-log"
+    Name = "vue-go-reading-log"
   }
 }
