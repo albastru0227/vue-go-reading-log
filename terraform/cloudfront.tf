@@ -16,6 +16,13 @@ data "aws_cloudfront_origin_request_policy" "origin_request_policy_apigateway" {
   name = "Managed-AllViewerExceptHostHeader" //Host以外（クエリ文字列など）を付加する
 }
 
+//拡張子のないすべてのリクエストにindex.htmlを返すCloudFront Functionを定義
+resource "aws_cloudfront_function" "booklog_spa_rewrite" {
+  name    = "booklog-spa-rewrite"
+  code    = file("${path.module}/functions/spa_rewrite.js")
+  runtime = "cloudfront-js-2.0"
+  publish = true
+}
 
 //CloudFrontディストリビューション
 resource "aws_cloudfront_distribution" "booklog" {
@@ -60,6 +67,12 @@ resource "aws_cloudfront_distribution" "booklog" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
+
+    //拡張子のないすべてのリクエストが来た場合、index.htmlを返すCloudFront Functionを設定する
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.booklog_spa_rewrite.arn
+    }
   }
 
   //API Gatewayへのリクエスト送信の振る舞いを設定
@@ -91,19 +104,6 @@ resource "aws_cloudfront_distribution" "booklog" {
   viewer_certificate {
     //CloudFrontデフォルトのものを使用する
     cloudfront_default_certificate = true
-  }
-
-  //パスへの直接アクセスの際、index.htmlにリダイレクトする
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-
-  custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/index.html"
   }
 }
 
