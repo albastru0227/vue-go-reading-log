@@ -24,6 +24,14 @@ resource "aws_cloudfront_function" "booklog_spa_rewrite" {
   publish = true
 }
 
+//API Gateway用に/apiのパスを削除するCloudFront Functionを定義
+resource "aws_cloudfront_function" "booklog_api_rewrite" {
+  name = "booklog-api-rewrite"
+  code = file("${path.module}/functions/api_rewrite.js")
+  runtime = "cloudfront-js-2.0"
+  publish = true
+}
+
 //CloudFrontディストリビューション
 resource "aws_cloudfront_distribution" "booklog" {
   //静的コンテンツが置かれているS3バケットへの紐づけ
@@ -84,6 +92,12 @@ resource "aws_cloudfront_distribution" "booklog" {
     path_pattern             = "/api/*"                                                                      //URLに/apiから始まるものを対象とする
     target_origin_id         = "apigateway-booklog"                                                          //originに指定したAPI Gatewayをターゲットとする
     viewer_protocol_policy   = "https-only"                                                                  //JavaScriptからのリクエストで基本はhttpsのためhttpsのみを受け付けるようにする
+
+    ///api を削ってからAPI Gatewayに転送するFunctionを紐づける
+    function_association {
+      event_type = "viewer-request"
+      function_arn = aws_cloudfront_function.booklog_api_rewrite.arn
+    }
   }
 
   //北米・欧州のみを使用し、最安のものを使用する
