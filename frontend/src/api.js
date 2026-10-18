@@ -1,1 +1,1 @@
-export const API_BASE = "https://dovfxkxzc1.execute-api.ap-northeast-1.amazonaws.com"
+export const API_BASE = "/api"
